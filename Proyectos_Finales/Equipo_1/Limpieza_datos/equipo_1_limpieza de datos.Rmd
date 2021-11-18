@@ -1,0 +1,169 @@
+---
+title: "LIMPIEZA DE DATOS SAMSUNG"
+author: "EQUIPO 1"
+date: "30 de agosto de 2021"
+output: html_document
+---
+
+equipo_1_samsung_datos_sucios
+```{r}
+library(tidyverse)
+
+```
+
+```{r}
+d1<- read.csv("C:/Users/Gerardo/Documents/9no semestre/Laboratorio de diseño y optimización de operaciones/Proyecto Final/equipo_1_samsung_datos_sucios.csv")
+d1
+
+```
+
+```{r}
+unique(d1$punto_de_venta)
+```
+```{r}
+unique(d1$gamma)
+```
+
+```{r}
+str(d1)
+```
+
+```{r}
+count(d1,estado)
+```
+CAMBIO DE PUNTO DE VENTA MAL ESCRITO
+```{r}
+count(d1,punto_de_venta)
+```
+```{r}
+d1$punto_de_venta <- str_replace(d1$punto_de_venta,"ace aldamacentro","ace aldama centro")
+```
+ace aldama centro 
+
+```{r}
+count(d1,punto_de_venta)
+```
+```{r}
+count(d1,mes)
+```
+CAMBIO DE MES 
+```{r}
+d1$mes <- str_replace(d1$mes,"ENERO","1")%>%
+          str_replace("JUL","7")%>%
+          str_replace("JUN","6")%>%
+          str_replace("NOV","11")%>%
+          str_replace("SEPT","9")
+  
+```
+```{r}
+count(d1,mes)
+
+```
+VARIABLE DE AÑO VAL NUM DE 4 DIG
+```{r}
+count(d1,anio)
+```
+19
+```{r}
+d1$anio <- str_replace(d1$anio,"19","2019")
+```
+
+listo
+```{r}
+d1$anio <- str_replace(d1$anio,"202019","2019")
+```
+
+```{r}
+count(d1,anio)
+```
+```{r}
+count(d1,marca)
+```
+```{r}
+d1$marca <- str_replace(d1$marca,"Samsung","samsung")%>%
+          str_replace("Samsung-samsung","samsung")%>%
+          str_replace("SAMSUNG","samsung")%>%
+          str_replace("sSamsung","samsung")
+```
+```{r}
+count(d1,marca)
+```
+```{r}
+d1$marca <- str_replace(d1$marca,"Samsung","samsung")%>%
+          str_replace("samsung-samsung","samsung")%>%
+          str_replace("ssamsung","samsung")
+```
+
+```{r}
+count(d1,marca)
+```
+listo
+
+```{r}
+count(d1,zona)
+```
+CENTRO OCCIDENTE 
+```{r}
+d1$zona <- str_replace(d1$zona,"CENTRO OCCIDENTE","centro occidente")
+```
+
+```{r}
+count(d1,zona)
+```
+```{r}
+count(d1,estado)
+```
+ecatepec (estado de mexico)
+saltillo (coahuila)
+tehuacan (puebla)
+
+```{r}
+d1$estado <- str_replace(d1$estado,"ecatepec","estado de mexico")%>%
+          str_replace("saltillo","coahuila")%>%
+          str_replace("tehuacan","puebla")
+```
+```{r}
+count(d1,estado)
+```
+eliminador de columnas
+```{r}
+
+#d1 <- d1%>%select(-(esado))
+```
+```{r}
+summary(d1)
+```
+
+```{r}
+d1 %>% filter(latitud >= 50) 
+```
+
+```{r}
+which(d1$latitud > 50)
+```
+```{r}
+d1[26447,]
+```
+```{r}
+d1[26447,13] <- 25.5
+d1[26447,14] <- -100.9
+```
+
+```{r}
+d1[26447,]
+```
+
+```{r}
+summary(d1)
+```
+
+
+```{r}
+datos <- d1
+write.csv(datos, file="equipo_1_samsung_datos_limpios.csv", row.names = FALSE)
+```
+
+
+
+
+
