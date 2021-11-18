@@ -1,0 +1,149 @@
+---
+title: "ACTIVIDAD 7"
+author: "Alberto Montes"
+date: "27 de septiembre de 2021"
+output: html_document
+---
+```{r}
+library(ggplot2)
+library(tidyverse)
+```
+
+```{r}
+d2<- read.csv("E:/Alberto/Documents/equipo_1_samsung_datos_limpios.csv")
+
+
+```
+```{r,fig.height=8, fig.width=16}
+ggplot(d2, aes (x=gamma))+
+         geom_bar()
+
+```
+```{r}
+count(d2,gamma)
+```
+la gamma alta es la que tiene un mayor numero de registros 
+```{r, fig.height=5, fig.width=12}
+ggplot(d2, aes(x=forcats:: fct_infreq(gamma), fill = gamma))+
+  geom_bar()+
+  theme_light()+
+  xlab("Gamma de dispositivo")+
+  ylab("Ventas totales en periodo 2018-2019")+
+  labs(title= "Grafica de ventas de dispositivo por gamma")
+```
+
+```{r,fig.height=8, fig.width=30}
+
+
+ggplot(d2,aes(x=zona, y=costo_promedio))+
+  geom_boxplot()
+```
+```{r}
+count(d2,num_ventas)
+```
+
+
+
+```{r}
+d3<-d2%>%group_by((anio))
+```
+```{r}
+d3<-d3%>%filter(anio=="2018")
+ggplot(d3, aes (x=anio,y=costo_promedio))+
+         geom_boxplot()
+
+```
+
+
+```{r}
+d4<-d2%>%group_by((fecha))
+
+d4<-d4%>%filter(anio=="2019")
+ggplot(d4, aes (x=anio,y=costo_promedio))+
+         geom_boxplot()
+
+```
+Anio 2019 
+```{r}
+ggplot(d4, aes (y=forcats:: fct_infreq(gamma), fill = gamma))+
+         geom_bar()
+```
+
+```{r}
+t<-d4%>%group_by((gamma))
+count(t,gamma)
+```
+
+```{r}
+ggplot(d3, aes (y=forcats:: fct_infreq(gamma), fill = gamma))+
+         geom_bar()
+```
+```{r}
+t2<-d3%>%group_by((gamma))
+count(t2)
+```
+```{r,fig.height=20, fig.width=30}
+
+
+ggplot(d4,aes(x=zona, y=costo_promedio))+
+  geom_boxplot()
+```
+```{r,fig.height=20, fig.width=30}
+
+#2018 comportamiento de acuerdo a la gamma 
+ggplot(d3,aes(x=gamma, y=costo_promedio))+
+  geom_boxplot()
+```
+
+```{r,fig.height=20, fig.width=30}
+
+#2019 comportamiento de acuerdo a la gamma 
+ggplot(d4,aes(x=gamma, y=costo_promedio))+
+  geom_boxplot()
+```
+```{r}
+filtergamma<-d4%>%group_by((gamma))
+
+filtergamma<-filtergamma%>%filter(gamma=="media")
+ggplot(filtergamma, aes (x=gamma,y=costo_promedio))+
+         geom_boxplot()
+
+```
+```{r}
+summary(d2)
+```
+
+```{r}
+d2$fecha <- as.Date(d2$fecha)
+```
+```{r}
+str(d2)
+```
+```{r}
+library(dplyr)
+filtermes<-d3%>%group_by(mes)%>%summarise(sum_costo_promedio = sum(costo_promedio))
+filtermes
+str(filtermes)
+```
+```{r}
+filtermes
+```
+Grafico costo promedio 2018
+```{r}
+ggplot(filtermes,aes(x = mes, y = sum_costo_promedio ))+geom_line()+
+  theme_light()+
+  xlab("Mes")+
+  ylab("Costo promedio por mes ")+
+  labs(title= "Grafica de costo promedio total por mes del año 2018")
+```
+```{r}
+library(dplyr)
+filtermes2<-d4%>%group_by(mes)%>%summarise(sum_costo_promedio = sum(costo_promedio))
+filtermes2
+str(filtermes2)
+ggplot(filtermes2,aes(x = mes, y = sum_costo_promedio ))+geom_line()+
+  theme_light()+
+  xlab("Mes")+
+  ylab("Costo promedio por mes ")+
+  labs(title= "Grafica de costo promedio total por mes del año 2019")
+```
