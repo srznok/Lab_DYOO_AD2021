@@ -1,0 +1,219 @@
+---
+title: "Actividad 8 Ingenieria de Caracteristicas"
+output: html_document
+---
+```{r}
+library(tidyverse)
+```
+
+```{r}
+datos <- read.csv("C:/Users/Angel/Downloads/Lab. de diseño y optimización de operaciones/DatosLimpios.csv")
+
+head(datos)
+```
+```{r}
+dim(datos)
+```
+
+```{r}
+str(datos)
+```
+
+```{r}
+summary(datos)
+```
+
+```{r}
+datos$punto_de_venta <- as.character(datos$punto_de_venta) #Caracter o factor 
+datos$fecha <- as.Date(datos$fecha)
+datos$mes <- as.numeric(datos$mes) #pueden ser factor / para usos prácticos de este ejercicio conviene que este en número 
+datos$anio <- as.numeric(datos$anio) #pueden ser factor / para usos prácticos de este ejercicio conviene que este en número
+datos$sku <- as.character(datos$sku) #Caracter o factor 
+datos$marca <- as.character(datos$marca) #Caracter o factor 
+datos$sku <- as.character(datos$sku) #Caracter o factor 
+```
+
+```{r}
+pdv_id <- datos%>%select(punto_de_venta)%>%unique()%>%arrange()
+head(pdv_id)
+```
+```{r}
+pdv_id$pdv_id <- as.character(seq.int(nrow(pdv_id)))
+head(pdv_id)
+```
+```{r}
+mes_id <- datos%>%select(mes,anio)%>%unique()%>%arrange(anio,mes)
+mes_id  
+```
+```{r}
+mes_id$mes_id <- as.character(seq.int(0,9,1))
+mes_id
+```
+```{r}
+sku_id <- datos%>%select(sku)%>%unique()%>%arrange()
+head(sku_id)
+```
+```{r}
+sku_id$sku_id <- as.character(seq.int(nrow(sku_id)))
+head(sku_id)
+```
+
+```{r}
+datos%>%select(marca)%>%unique()
+```
+
+```{r}
+datos[,c("gamma","sku")] %>% 
+  mutate(contador = 1) %>% 
+  group_by(gamma, sku) %>% 
+  summarise(repeticiones = sum(contador))
+```
+
+```{r}
+dim(datos)
+```
+
+```{r}
+datos <- left_join(datos, pdv_id, by="punto_de_venta")
+head(datos)
+```
+
+```{r}
+datos <- left_join(datos, sku_id, by="sku")
+datos <- left_join(datos, mes_id, by=c("mes","anio"))
+head(datos)
+```
+```{r}
+datos <- datos %>% 
+  #quitamos fecha porque vamos a hacer el análisis por mes 
+  group_by(pdv_id, sku_id, mes_id)%>% 
+  summarise(ventas_totales = sum(num_ventas))
+
+head(datos)
+```
+```{r}
+#Datos agrupados - ahora sabemos cuántas unidades de producto se vendieron en total en cada punto de venta en cada fecha. 
+dim(datos)
+```
+
+```{r}
+names(datos)
+```
+```{r}
+nrow(mes_id)
+```
+
+```{r}
+nrow(sku_id)
+```
+
+```{r}
+nrow(pdv_id)
+```
+```{r}
+#Combinaciones 
+nrow(mes_id)*nrow(sku_id)*nrow(pdv_id)
+```
+
+```{r}
+#Crear dataset con combinaciones
+datos_completos <- merge(mes_id, sku_id)
+datos_completos <- merge(datos_completos, pdv_id)
+head(datos_completos)
+```
+
+```{r}
+datos_completos <- datos_completos %>% select(pdv_id, mes_id, sku_id)
+head(datos_completos)
+```
+```{r}
+datos_completos <- left_join(datos_completos, datos, by=c("pdv_id","mes_id","sku_id"))
+head(datos_completos)
+```
+
+```{r}
+datos_completos[is.na(datos_completos)] <- 0 
+head(datos_completos)
+```
+```{r}
+library(dplyr)
+datos_completos <- datos_completos %>% 
+  group_by(pdv_id, sku_id) %>% 
+  mutate(y_ventas_siguiente_mes = lead(ventas_totales,n = 1L, default = NA)) 
+
+head(datos_completos)
+```
+```{r}
+datos_completos <- datos_completos %>% filter(mes_id <= 8)
+head(datos_completos)
+```
+```{r}
+#conteos y promedios por duplas de características 
+
+mes_pdv <-datos_completos%>%
+  group_by(mes_id, pdv_id)%>%
+  summarise(ventas_totales_en_tienda_de_cada_mes=sum(ventas_totales), 
+            ventas_promedio_en_tienda_de_cada_mes = mean(ventas_totales))
+
+mes_pdv
+```
+```{r}
+#En el mes ____ y en el punto de venta ______, se tuvieron ______ ventas totales y se obtuvo un promedio de ventas de ________ (23/34 productos)
+```
+
+```{r}
+#conteos y promedios por duplas de características 
+
+mes_sku <-datos_completos%>%
+  group_by(mes_id, sku_id)%>%
+  summarise(ventas_totales_en_tienda_de_cada_sku=sum(ventas_totales), 
+            ventas_promedio_en_tienda_de_cada_sku = mean(ventas_totales))
+
+mes_sku
+```
+
+```{r}
+#En el mes ____ y en el punto de venta ______, se tuvieron ______ ventas totales y se obtuvo un promedio de ventas de ________ (3778/1900 productos)
+```
+
+```{r}
+datos_completos <- left_join(datos_completos, mes_pdv, by=c("mes_id", "pdv_id"))
+datos_completos <- left_join(datos_completos, mes_sku, by=c("mes_id", "sku_id"))
+head(datos_completos)
+```
+```{r}
+datos_completos <- datos_completos %>%
+  group_by(pdv_id, sku_id)%>%
+  mutate(
+    ventas_totales_1_mes_pasado = lag(ventas_totales, n=1), 
+    ventas_totales_2_meses_pasados = lag(ventas_totales, n=2), 
+    ventas_totales_3_meses_pasados = lag(ventas_totales, n=3), 
+    
+    ventas_totales_tienda_y_mes_del_mes_pasado = lag(ventas_totales_en_tienda_de_cada_mes, n=1), 
+    ventas_totales_tienda_y_mes_2_pasado = lag(ventas_totales_en_tienda_de_cada_mes, n=2),
+    ventas_totales_tienda_y_mes_3_pasado = lag(ventas_totales_en_tienda_de_cada_mes, n=3),
+    
+    ventas_promedio_tienda_y_mes_del_mes_pasado = lag(ventas_promedio_en_tienda_de_cada_mes, n=1), 
+    ventas_promedio_tienda_y_mes_2_pasado = lag(ventas_promedio_en_tienda_de_cada_mes, n=2),
+    ventas_promedio_tienda_y_mes_3_pasado = lag(ventas_promedio_en_tienda_de_cada_mes, n=3),
+  
+    ventas_totales_tienda_y_sku_del_mes_pasado = lag(ventas_totales_en_tienda_de_cada_sku, n=1), 
+    ventas_totales_tienda_y_sku_2_pasado = lag(ventas_totales_en_tienda_de_cada_sku, n=2),
+    ventas_totales_tienda_y_sku_3_pasado = lag(ventas_totales_en_tienda_de_cada_sku, n=3),
+    
+    ventas_promedio_tienda_y_sku_del_mes_pasado = lag(ventas_promedio_en_tienda_de_cada_sku, n=1), 
+    ventas_promedio_tienda_y_sku_2_pasado = lag(ventas_promedio_en_tienda_de_cada_sku, n=2),
+    ventas_promedio_tienda_y_sku_3_pasado = lag(ventas_promedio_en_tienda_de_cada_sku, n=3)) 
+
+head(datos_completos,20)
+```
+
+```{r}
+datos_completos[is.na(datos_completos)] <- 0 
+head(datos_completos)
+```
+
+```{r}
+write.csv(datos_completos, file="Datos_completos.csv", row.names = FALSE)
+```
+
