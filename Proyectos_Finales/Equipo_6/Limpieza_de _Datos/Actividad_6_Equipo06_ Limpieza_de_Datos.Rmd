@@ -1,0 +1,176 @@
+---
+title: "Actividad_6_Equipo06_ Limpieza_de_Datos"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r}
+library(tidyverse)
+```
+
+Equipo: 
+Angel Eduardo Perez Giles  
+Abril M. Mondragon Plata  
+Claudia E. Lopez Benitez   
+Gustavo Aparicio Uribe  
+Alan Torres Rachner 
+
+##La marca con la que vamos a trabajar a lo largo del semestre es Apple, conocida compañía en la venta de equipos moviles y otros equipos electronicos. A inicios de el 2020 Apple sufrió grandes pérdidas debido a la pandemia generada por COVID-19, tuvo que cerrar muchos centros minoristas alrededor del mundo, por lo que las ventas se redujeron considerablemente y eso derivó en la caída de sus acciones. A continuacion se mostraran los datos de todas las sucursales de Apple en la Republica Mexicana.
+
+```{r}
+datos1 <- read.csv("equipo_6_apple_2_datos_sucios.csv")
+```
+
+```{r}
+str(datos1)
+```
+
+##Se tienen más de 100,000 entradas recaudadas de las diferentes sucursales repartidas a lo largo de la república mexicana en un archivo .csv de los años 2018-2019.Las categorías para los datos son: punto_de_venta, fecha, mes, anio, num_ventas, sku, marca, gamma, costo_promedio, zona, estado, ciudad, latitud, longitud.
+
+##Se pueden observar los siguientes errores de calidad en los datos: Error en la categoría de año por “anio”, mezcla formato de año 2021 con 21, mezcla nombre de mes con número de mes, en el apartado de "marca" mezcla mayusculas y minusculas, Errores en los números sku
+
+##Correciones "punto_de_Venta"
+
+```{r}
+datos1$punto_de_venta <- tolower(datos1$punto_de_venta)
+```
+
+##Había varias entradas que estaban escritas algunas ocaciones con mayusculas y otras con minusculas. Corregido
+
+##La variable "fecha" está en el formato correcto, por lo que no necesita arreglo
+
+##Correcciones variable "mes"
+
+```{r}
+datos1 %>% select(mes) %>% unique()
+```
+
+```{r}
+datos1$mes <- str_replace(datos1$mes, "AGOSTO", "8") %>%
+  str_replace("DIC", "12") %>% 
+  str_replace("OCT", "10") %>%
+  str_replace("NOV", "11") %>%
+  str_replace("SEPT", "9")
+```
+
+##Se mezclaba el formato de numero de mes con el nombre del mes, ahora solo se maneja por el numero del mes. Corregido
+
+##Correcciones Variable "anio"
+
+```{r}
+datos1 %>% select(anio) %>% unique()
+```
+
+```{r}
+datos1$anio <- str_replace(datos1$anio, "18", "2018")
+```
+
+```{r}
+datos1$anio <- str_replace(datos1$anio, "202018", "2018")
+```
+
+##Se mezclo el formato de año en dos digitos con el de año en cuatro digitos, fue cambiado a que todos los años sean de cuatro digitos. Corregido
+
+##La variable "numero_de_ventas" no presenta errores
+
+##La variable "sku" no presenta errores
+
+##Cambios a la variable "marca"
+
+```{r}
+datos1 %>% select(marca) %>% unique()
+```
+
+```{r}
+datos1$marca <- tolower(datos1$marca)
+```
+
+```{r}
+datos1 %>% select(marca) %>% unique()
+```
+
+```{r}
+datos1$marca <- str_replace(datos1$marca, "aapple", "apple") %>%
+  str_replace("apple-apple", "apple")
+```
+
+##Se escribia "apple" de varias formas erroneas, se cambio a una sola forma para escribir "apple". Corregido
+
+##Variable "gamma" no tiene erorres
+
+##Variable "costo" no requiere correcciones 
+
+##Correccion a la varible "zona"
+
+```{r}
+datos1 %>% select(zona) %>% unique()
+```
+
+```{r}
+datos1$zona <- tolower(datos1$zona)
+```
+
+##Solo hubo un pequeño error con las mayusculas al escribir "noroeste". Corregido
+
+##Correciones de la variable "estado".
+
+```{r}
+datos1 %>% select(estado) %>% unique()
+```
+
+```{r}
+datos1$estado <- str_replace(datos1$estado, "culiacan", "sinaloa") %>%
+  str_replace("xalapa", "veracruz") %>%
+  str_replace("monterrey", "nuevo leon")
+```
+
+##Se escribieron nombres de ciudades, por lo que fueron cambiados por su respectivo estado al que pertenecen. Corregido
+
+##En la variables "ciudad" no se encontraron errores
+
+##Correccion a la variable "latitud"
+
+```{r}
+datos1 %>% filter(latitud >= 20) %>% summary()
+```
+
+```{r}
+which(datos1$latitud >= 45)
+```
+
+```{r}
+datos1 [19048,]
+```
+
+```{r}
+datos1 [19048,13] <- 2.481415e+1
+```
+
+##Había un error en la entrada numero #19048 donde se puso un e+6 en lugar de un e+1. Corregido
+
+##Correccion de error en variable "longitud"
+
+```{r}
+datos1 %>% filter(longitud <= -100) %>% summary()
+```
+
+```{r}
+which(datos1$longitud <= -150)
+```
+
+```{r}
+datos1 [19048,]
+```
+
+```{r}
+datos1 [19048,14] <- -1.073997e+1
+```
+
+##Había un error en la entrada numero #19048 donde se puso un e+6 en lugar de un e+1. Corregido
+
+```{r}
+write.csv(datos1, file="DatosLimpios.csv",row.names = FALSE)
+```
+
+
